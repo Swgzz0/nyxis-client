@@ -1,25 +1,28 @@
-from flask import Flask, send_from_directory, jsonify, render_template_string
+from flask import Flask, send_from_directory, jsonify
 import importlib
 import os
 
-app = Flask(__name__, static_folder='../', static_url_path='')
+app = Flask(__name__)
+
+# Get the root directory (one level up from api folder)
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # ========== SERVE HTML PAGES ==========
 @app.route('/')
 def serve_index():
     """Serve the main index.html file"""
     try:
-        return send_from_directory(os.path.dirname(os.path.dirname(__file__)), 'index.html')
-    except:
-        return "Welcome to Nyxis Client! The HTML files are being served."
+        return send_from_directory(ROOT_DIR, 'index.html')
+    except Exception as e:
+        return f"Error serving index.html: {e}"
 
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve any other static files"""
     try:
-        return send_from_directory(os.path.dirname(os.path.dirname(__file__)), path)
-    except:
-        return jsonify({'error': 'File not found'}), 404
+        return send_from_directory(ROOT_DIR, path)
+    except Exception as e:
+        return jsonify({'error': f'File not found: {path}', 'details': str(e)}), 404
 
 # ========== API HEALTH CHECK ==========
 @app.route('/api/health', methods=['GET'])
