@@ -1,9 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import request, jsonify
 import hashlib
 import sqlite3
 import os
-
-app = Flask(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'nyxis.db')
 
@@ -15,34 +13,41 @@ def get_db():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-@app.route('/api/login', methods=['POST'])
-def login():
-    data = request.json
-    username = data.get('username', '').strip()
-    password = data.get('password', '').strip()
+def register_routes(app):
+    @app.route('/api/login', methods=['POST'])
+    def login():
+        data = request.json
+        username = data.get('username', '').strip()
+        password = data.get('password', '').strip()
 
-    if not username or not password:
-        return jsonify({'success': False, 'error': 'Username and password required'}), 400
+        if not username or not password:
+            return jsonify({'success': False, 'error': 'Username and password required'}), 400
 
-    conn = get_db()
-    c = conn.cursor()
-    hashed = hash_password(password)
-    c.execute('SELECT id, username, password, email, is_admin, is_banned FROM users WHERE username = ?', (username,))
-    user = c.fetchone()
-    conn.close()
+        conn = get_db()
+        c = conn.cursor()
+        hashed = hash_password(password)
+        c.execute('SELECT id, username, password, email, is_admin, is_banned FROM users WHERE username = ?', (username,))
+        user = c.fetchone()
 
-    if not user or user['password'] != hashed:
-        return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
+        if not user:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
-    if user['is_banned'] == 1:
-        return jsonify({'success': False, 'error': 'Account banned'}), 403
+        if user['password'] != hashed:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Invalid credentials'}), 401
 
-    return jsonify({
-        'success': True,
-        'user': {
-            'id': user['id'],
-            'username': user['username'],
-            'email': user['email'],
-            'is_admin': user['is_admin'] == 1
-        }
-    })
+        if user['is_banned'] == 1:
+            conn.close()
+            return jsonify({'success': False, 'error': 'Account banned'}), 403
+
+        conn.close()
+        return jsonify({
+            'success': True,
+            'user': {
+                'id': user['id'],
+                'username': user['username'],
+                'email': user['email'],
+                'is_admin': user['is_admin'] == 1
+            }
+        })
