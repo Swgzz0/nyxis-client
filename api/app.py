@@ -1,35 +1,42 @@
-from flask import Flask, send_file, jsonify, send_from_directory
+from flask import Flask, send_file, jsonify
 import os
 import sys
 
 app = Flask(__name__)
 
-# ========== SIMPLE FILE SERVING ==========
+# ========== SIMPLE FILE SERVING - WORKS 100% ==========
 @app.route('/')
 def serve_index():
-    """Serve the main index.html file"""
+    """Serve the main index.html file from the ROOT folder"""
     try:
-        # Try different possible locations
-        locations = [
-            'index.html',
-            'INDEX.HTML',
+        # Get the root directory (where index.html actually lives)
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Try different possible locations for index.html
+        possible_files = [
+            os.path.join(root_dir, 'index.html'),
+            os.path.join(root_dir, 'INDEX.HTML'),
             os.path.join(os.getcwd(), 'index.html'),
             os.path.join(os.getcwd(), 'INDEX.HTML'),
             '/vercel/path0/index.html',
+            '/vercel/path0/INDEX.HTML',
             '/var/task/index.html',
+            '/var/task/INDEX.HTML',
         ]
         
-        for loc in locations:
-            if os.path.exists(loc):
-                print(f"✅ Found file at: {loc}")
-                return send_file(loc)
+        for file_path in possible_files:
+            if os.path.exists(file_path):
+                print(f"✅ Found file: {file_path}")
+                return send_file(file_path)
         
-        # If no file found, list what's there
+        # If no file found, show debug info
         files = os.listdir(os.getcwd())
         return jsonify({
-            'error': 'No index.html found',
+            'error': 'index.html not found',
+            'current_directory': os.getcwd(),
             'files': files,
-            'cwd': os.getcwd()
+            'root_directory': root_dir,
+            'root_files': os.listdir(root_dir) if os.path.exists(root_dir) else []
         }), 404
         
     except Exception as e:
@@ -37,21 +44,23 @@ def serve_index():
 
 @app.route('/<path:path>')
 def serve_static(path):
-    """Serve any other static files"""
+    """Serve any other static files from the ROOT folder"""
     try:
-        # Try different locations
-        locations = [
-            path,
-            path.upper(),
-            path.lower(),
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Try different possible locations
+        possible_files = [
+            os.path.join(root_dir, path),
+            os.path.join(root_dir, path.upper()),
+            os.path.join(root_dir, path.lower()),
             os.path.join(os.getcwd(), path),
-            '/vercel/path0/' + path,
-            '/var/task/' + path,
+            os.path.join('/vercel/path0', path),
+            os.path.join('/var/task', path),
         ]
         
-        for loc in locations:
-            if os.path.exists(loc):
-                return send_file(loc)
+        for file_path in possible_files:
+            if os.path.exists(file_path):
+                return send_file(file_path)
         
         return jsonify({'error': f'File not found: {path}'}), 404
         
@@ -71,7 +80,6 @@ def test():
 try:
     from api import login, register, admin, buy, activate, keys, stats, logs, generate_key
     
-    # Register each route file if it has the function
     route_modules = [login, register, admin, buy, activate, keys, stats, logs, generate_key]
     for module in route_modules:
         if hasattr(module, 'register_routes'):
