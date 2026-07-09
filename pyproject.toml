@@ -1,2 +1,9 @@
-[tool.vercel]
-entrypoint = "api.app:app"
+[project] 
+name = "nyxis-client" 
+version = "1.0.0" 
+description = "Nyxis Ghost Client" 
+requires-python = ">=3.9" 
+dependencies = ["Flask>=2.0.0", "flask-cors>=3.0.0", "gunicorn>=20.1.0"] 
+ 
+[tool.vercel] 
+entrypoint = "api.app:app" 
