@@ -156,7 +156,13 @@
     </div>
 
     <script>
-        const BACKEND = https://nyxis-backend.onrender.com;
+        const BACKEND = 'https://nyxis-backend.onrender.com/api';
+
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('nyxis_user') || '{}');
+        if (!user.is_admin) {
+            window.location.href = 'login.html';
+        }
 
         async function loadStats() {
             try {
@@ -257,11 +263,6 @@
         loadStats();
         loadUsers();
         loadLogs();
-
-        const user = JSON.parse(localStorage.getItem('nyxis_user') || '{}');
-        if (!user.is_admin) {
-            window.location.href = 'login.html';
-        }
     </script>
 </body>
 </html>

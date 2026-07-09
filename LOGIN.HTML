@@ -92,7 +92,7 @@
     </div>
 
     <script>
-        const BACKEND = https://nyxis-backend.onrender.com;
+        const BACKEND = 'https://nyxis-backend.onrender.com/api';
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -115,13 +115,15 @@
                     document.getElementById('successMsg').style.display = 'block';
                     document.getElementById('successMsg').innerText = 'Login successful! Redirecting...';
                     localStorage.setItem('nyxis_user', JSON.stringify(data.user));
+                    
+                    // REDIRECT
                     setTimeout(() => {
                         if (data.user.is_admin) {
                             window.location.href = 'admin.html';
                         } else {
                             window.location.href = 'dashboard.html';
                         }
-                    }, 1000);
+                    }, 500);
                 } else {
                     document.getElementById('errorMsg').style.display = 'block';
                     document.getElementById('errorMsg').innerText = data.error || 'Login failed';
