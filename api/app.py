@@ -4,52 +4,55 @@ import os
 
 app = Flask(__name__)
 
-# ========== SERVE HTML PAGES - VERCEL COMPATIBLE ==========
+# ========== SERVE HTML PAGES - CASE INSENSITIVE ==========
+def find_file(filename):
+    """Find a file even if the case is wrong"""
+    # Try exact match first
+    if os.path.exists(filename):
+        return filename
+    
+    # Try in current directory
+    if os.path.exists(os.path.join(os.getcwd(), filename)):
+        return os.path.join(os.getcwd(), filename)
+    
+    # Try uppercase version
+    if os.path.exists(filename.upper()):
+        return filename.upper()
+    
+    # Try lowercase version
+    if os.path.exists(filename.lower()):
+        return filename.lower()
+    
+    # Try in /vercel/path0
+    vercel_path = '/vercel/path0'
+    if os.path.exists(os.path.join(vercel_path, filename)):
+        return os.path.join(vercel_path, filename)
+    
+    # Check all files in current directory
+    try:
+        for file in os.listdir(os.getcwd()):
+            if file.lower() == filename.lower():
+                return os.path.join(os.getcwd(), file)
+    except:
+        pass
+    
+    return None
+
 @app.route('/')
 def serve_index():
     """Serve the main index.html file"""
-    try:
-        # Try multiple possible paths for Vercel
-        possible_paths = [
-            os.path.join(os.path.dirname(os.path.dirname(__file__)), 'index.html'),
-            os.path.join(os.getcwd(), 'index.html'),
-            os.path.join('/vercel/path0', 'index.html'),
-            'index.html'
-        ]
-        
-        for path in possible_paths:
-            if os.path.exists(path):
-                return send_from_directory(os.path.dirname(path), 'index.html')
-        
-        # If none found, list files for debugging
-        files = os.listdir(os.getcwd())
-        return jsonify({
-            'error': 'index.html not found',
-            'current_dir': os.getcwd(),
-            'files': files[:20]  # Show first 20 files
-        }), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    html_file = find_file('index.html')
+    if html_file:
+        return send_file(html_file)
+    return jsonify({'error': 'index.html not found'}), 404
 
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve any other static files"""
-    try:
-        # Try multiple possible paths
-        possible_dirs = [
-            os.path.dirname(os.path.dirname(__file__)),
-            os.getcwd(),
-            '/vercel/path0'
-        ]
-        
-        for dir_path in possible_dirs:
-            file_path = os.path.join(dir_path, path)
-            if os.path.exists(file_path):
-                return send_from_directory(dir_path, path)
-        
-        return jsonify({'error': f'File not found: {path}'}), 404
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    file_path = find_file(path)
+    if file_path:
+        return send_file(file_path)
+    return jsonify({'error': f'File not found: {path}'}), 404
 
 # ========== API HEALTH CHECK ==========
 @app.route('/api/health', methods=['GET'])
