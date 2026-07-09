@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Nyxis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A0A;
+            color: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+        .auth-container {
+            max-width: 420px;
+            width: 100%;
+            background: rgba(255,255,255,0.03);
+            border-radius: 24px;
+            padding: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo { text-align: center; font-size: 40px; margin-bottom: 10px; }
+        .logo span { color: #64C8FF; }
+        h1 { text-align: center; font-size: 28px; margin-bottom: 5px; }
+        .sub { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; color: #CCC; font-size: 14px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #FFF;
+            font-size: 16px;
+        }
+        input:focus { outline: none; border-color: #64C8FF; }
+        .auth-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #64C8FF, #3A7BD5);
+            border: none;
+            padding: 16px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            color: #0A0A0A;
+            transition: transform 0.2s;
+        }
+        .auth-btn:hover { transform: scale(1.02); }
+        .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error-msg { color: #FF4444; text-align: center; margin-top: 15px; display: none; font-size: 14px; }
+        .success-msg { color: #64C8FF; text-align: center; margin-top: 15px; display: none; font-size: 14px; }
+        .links { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+        .links a { color: #64C8FF; text-decoration: none; }
+        .links a:hover { text-decoration: underline; }
+        .back-link { display: block; text-align: center; margin-top: 15px; color: #888; text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #64C8FF; }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="logo">✦ <span>NYXIS</span></div>
+        <h1>Welcome Back</h1>
+        <div class="sub">Login to access your dashboard</div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+            <button type="submit" class="auth-btn">Login →</button>
+        </form>
+
+        <div id="errorMsg" class="error-msg"></div>
+        <div id="successMsg" class="success-msg"></div>
+
+        <div class="links">
+            Don't have an account? <a href="register.html">Register</a>
+        </div>
+        <a href="index.html" class="back-link">← Back to Home</a>
+    </div>
+
+    <script>
+        const BACKEND = window.location.origin + '/api';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const btn = document.querySelector('.auth-btn');
+            btn.innerText = 'Logging in...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${BACKEND}/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    document.getElementById('successMsg').style.display = 'block';
+                    document.getElementById('successMsg').innerText = 'Login successful! Redirecting...';
+                    localStorage.setItem('nyxis_user', JSON.stringify(data.user));
+                    setTimeout(() => {
+                        if (data.user.is_admin) {
+                            window.location.href = 'admin.html';
+                        } else {
+                            window.location.href = 'dashboard.html';
+                        }
+                    }, 1000);
+                } else {
+                    document.getElementById('errorMsg').style.display = 'block';
+                    document.getElementById('errorMsg').innerText = data.error || 'Login failed';
+                }
+            } catch (err) {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('errorMsg').innerText = 'Cannot connect to server';
+            }
+
+            btn.innerText = 'Login →';
+            btn.disabled = false;
+        });
+    </script>
+</body>
+</html>

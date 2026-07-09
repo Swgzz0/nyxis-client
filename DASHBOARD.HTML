@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Nyxis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A0A;
+            color: #FFFFFF;
+            min-height: 100vh;
+            padding: 40px;
+        }
+        .dashboard-container { max-width: 1000px; margin: 0 auto; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .header h1 { font-size: 28px; }
+        .header .user-info { color: #666; font-size: 14px; }
+        .header .user-info strong { color: #FFF; }
+        .card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 20px;
+        }
+        .card h2 { font-size: 18px; margin-bottom: 15px; }
+        .card .key-display {
+            background: rgba(100, 200, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: #64C8FF;
+            text-align: center;
+        }
+        .btn {
+            background: linear-gradient(135deg, #64C8FF, #3A7BD5);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 40px;
+            font-weight: 600;
+            color: #0A0A0A;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #FFF;
+            padding: 10px 25px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-outline:hover { border-color: #64C8FF; color: #64C8FF; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .purchase-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <div>
+                <h1>✦ Nyxis Dashboard</h1>
+                <div class="user-info">Logged in as <strong id="usernameDisplay">User</strong></div>
+            </div>
+            <div>
+                <a href="index.html" class="btn-outline" style="margin-right: 10px;">Website</a>
+                <a href="login.html" class="btn-outline" onclick="localStorage.removeItem('nyxis_user')">Logout</a>
+            </div>
+        </div>
+
+        <div class="grid-2">
+            <div class="card">
+                <h2>⚡ Your License Key</h2>
+                <div class="key-display" id="licenseKeyDisplay">No active license</div>
+                <p style="color: #666; margin-top: 10px; font-size: 13px;">Use this key to activate the Nyxis client</p>
+            </div>
+            <div class="card">
+                <h2>📅 Subscription Info</h2>
+                <div id="subscriptionInfo">
+                    <p style="color: #888;">No active subscription</p>
+                </div>
+                <a href="buy.html" class="btn" style="margin-top: 15px;">Buy Nyxis</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📋 Purchase History</h2>
+            <div id="purchaseHistory">
+                <p style="color: #888;">No purchases yet</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND = window.location.origin + '/api';
+        const user = JSON.parse(localStorage.getItem('nyxis_user') || '{}');
+
+        if (!user.username) {
+            window.location.href = 'login.html';
+        }
+
+        document.getElementById('usernameDisplay').innerText = user.username;
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${BACKEND}/keys/${user.id}`);
+                const data = await res.json();
+                const keys = data.keys || [];
+
+                if (keys.length > 0) {
+                    const activeKey = keys.find(k => k.status === 'active');
+                    if (activeKey) {
+                        document.getElementById('licenseKeyDisplay').innerText = activeKey.key;
+                        document.getElementById('subscriptionInfo').innerHTML = `
+                            <p><strong>Plan:</strong> ${activeKey.plan.charAt(0).toUpperCase() + activeKey.plan.slice(1)}</p>
+                            <p><strong>Status:</strong> <span style="color: #33AA33;">Active</span></p>
+                            <p><strong>Expires:</strong> ${new Date(activeKey.end_date).toLocaleDateString()}</p>
+                        `;
+                    }
+                }
+
+                const historyDiv = document.getElementById('purchaseHistory');
+                if (keys.length > 0) {
+                    historyDiv.innerHTML = keys.map(k => `
+                        <div class="purchase-item">
+                            <span>${k.plan} Plan</span>
+                            <span style="color: ${k.status === 'active' ? '#33AA33' : '#FF4444'}">${k.status}</span>
+                            <span style="color: #666;">${new Date(k.start_date).toLocaleDateString()}</span>
+                        </div>
+                    `).join('');
+                }
+            } catch {}
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

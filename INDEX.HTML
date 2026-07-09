@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nyxis | Premium Ghost Client</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0A0A;
+            color: #FFFFFF;
+            overflow-x: hidden;
+        }
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glowPulse {
+            0%, 100% { text-shadow: 0 0 30px rgba(100, 200, 255, 0.2); }
+            50% { text-shadow: 0 0 60px rgba(100, 200, 255, 0.5); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .fade-up { animation: fadeInUp 0.8s ease forwards; opacity: 0; }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .navbar {
+            padding: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+        .logo span { color: #64C8FF; text-shadow: 0 0 30px rgba(100, 200, 255, 0.3); }
+        .nav-links {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .nav-links a {
+            color: #888888;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            font-size: 14px;
+        }
+        .nav-links a:hover { color: #64C8FF; }
+        .btn-glow {
+            background: linear-gradient(135deg, #64C8FF, #3A7BD5);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            color: #0A0A0A;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-glow:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(100, 200, 255, 0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #FFFFFF;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .btn-outline:hover { border-color: #64C8FF; color: #64C8FF; }
+        .hero {
+            padding: 80px 0 60px;
+            text-align: center;
+        }
+        .hero .bolt { font-size: 80px; display: inline-block; animation: float 3s ease-in-out infinite; }
+        .hero h1 {
+            font-size: 72px;
+            font-weight: 900;
+            margin-bottom: 15px;
+            animation: glowPulse 4s infinite;
+        }
+        .hero h1 span { color: #64C8FF; }
+        .hero .tagline {
+            font-size: 18px;
+            color: #888888;
+            max-width: 600px;
+            margin: 0 auto 30px;
+            font-weight: 300;
+        }
+        .hero .tagline strong { color: #64C8FF; font-weight: 600; }
+        .hero-buttons { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            padding: 40px 0;
+            flex-wrap: wrap;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin: 20px 0;
+        }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 36px; font-weight: 800; color: #64C8FF; }
+        .stat-label { color: #666666; margin-top: 5px; font-size: 13px; }
+        .section-title { font-size: 36px; font-weight: 700; text-align: center; margin-bottom: 15px; }
+        .section-subtitle { text-align: center; color: #666666; margin-bottom: 50px; font-size: 16px; }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            padding: 20px 0 60px;
+        }
+        .feature-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(100, 200, 255, 0.3);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .feature-icon { font-size: 48px; margin-bottom: 20px; }
+        .feature-card h3 { font-size: 18px; margin-bottom: 10px; }
+        .feature-card p { color: #888888; line-height: 1.6; font-size: 14px; }
+        .pricing-grid {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            padding: 20px 0 60px;
+            flex-wrap: wrap;
+        }
+        .pricing-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            min-width: 260px;
+            max-width: 320px;
+            flex: 1;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s;
+        }
+        .pricing-card:hover { transform: translateY(-10px); border-color: rgba(100, 200, 255, 0.3); }
+        .pricing-card.featured { border-color: #64C8FF; background: rgba(100, 200, 255, 0.05); }
+        .pricing-card .plan-name { font-size: 20px; font-weight: 700; margin-bottom: 5px; }
+        .pricing-card .plan-duration { color: #666666; font-size: 13px; }
+        .pricing-card .price { font-size: 42px; font-weight: 800; margin: 20px 0; color: #64C8FF; }
+        .pricing-card .price small { font-size: 16px; color: #888888; font-weight: 400; }
+        .pricing-features { list-style: none; margin: 25px 0; }
+        .pricing-features li { padding: 8px 0; color: #CCCCCC; font-size: 14px; }
+        .pricing-features li .check { color: #64C8FF; margin-right: 8px; }
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            padding: 20px 0 60px;
+        }
+        .review-card {
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .review-card .stars { color: #64C8FF; font-size: 18px; margin-bottom: 10px; }
+        .review-card .review-text { color: #CCCCCC; font-size: 14px; line-height: 1.6; margin-bottom: 15px; }
+        .review-card .reviewer { display: flex; align-items: center; gap: 12px; }
+        .review-card .reviewer .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(100, 200, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #64C8FF;
+        }
+        .review-card .reviewer .name { font-weight: 600; font-size: 14px; }
+        .review-card .reviewer .handle { color: #666666; font-size: 12px; }
+        .faq-grid {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px 0 60px;
+        }
+        .faq-item {
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px 0;
+        }
+        .faq-item .faq-q {
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .faq-item .faq-q:hover { color: #64C8FF; }
+        .faq-item .faq-a {
+            color: #888888;
+            padding-top: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            display: none;
+        }
+        .faq-item .faq-a.open { display: block; }
+        .footer {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 40px 0;
+            text-align: center;
+            color: #666666;
+            font-size: 13px;
+        }
+        .footer a { color: #64C8FF; text-decoration: none; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 40px; }
+            .navbar { flex-direction: column; text-align: center; }
+            .nav-links { justify-content: center; }
+            .hero-buttons { flex-direction: column; align-items: center; }
+            .pricing-card { min-width: 100%; }
+            .stats-bar { gap: 30px; }
+            .stat-number { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="particles"></canvas>
+
+<div class="container">
+    <nav class="navbar">
+        <div class="logo"><span>✦</span> <span>NYXIS</span></div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#modules">Modules</a>
+            <a href="#pricing">Pricing</a>
+            <a href="#reviews">Reviews</a>
+            <a href="#faq">FAQ</a>
+            <a href="login.html" class="btn-outline">Login</a>
+            <a href="register.html" class="btn-glow">Get Nyxis</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="bolt">✦</div>
+        <h1 class="fade-up"><span>NYXIS</span></h1>
+        <p class="fade-up tagline">
+            The <strong>undetectable</strong> ghost client. <br>
+            Zero delay. Maximum performance. Complete invisibility.
+        </p>
+        <div class="hero-buttons fade-up">
+            <a href="#pricing" class="btn-glow">Get Started →</a>
+            <a href="#features" class="btn-outline">Learn More</a>
+        </div>
+    </section>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-number">0ms</div>
+            <div class="stat-label">Delay</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">99.9%</div>
+            <div class="stat-label">Uptime</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number" id="userCount">2,847</div>
+            <div class="stat-label">Active Users</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">100%</div>
+            <div class="stat-label">Undetectable</div>
+        </div>
+    </div>
+
+    <section id="features">
+        <h2 class="section-title">Premium Features</h2>
+        <p class="section-subtitle">Everything you need for the ultimate ghost client experience</p>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <h3>Undetectable</h3>
+                <p>Advanced bypass technology that keeps you completely invisible</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Zero Delay</h3>
+                <p>Optimized for maximum performance with 0ms input latency</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Ghost Mode</h3>
+                <p>Complete invisibility - no logs, no traces, no detection</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <h3>Auto-Updater</h3>
+                <p>Always stay ahead with automatic updates and patches</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎮</div>
+                <h3>Game Optimizer</h3>
+                <p>Boost FPS and reduce latency for any game</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💎</div>
+                <h3>Premium Modules</h3>
+                <p>Access to exclusive modules and advanced tools</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="modules">
+        <h2 class="section-title">Modules</h2>
+        <p class="section-subtitle">Coming soon - powerful modules to enhance your experience</p>
+        <div class="features-grid" style="padding-bottom: 60px;">
+            <div class="feature-card" style="opacity: 0.5;">
+                <div class="feature-icon">📦</div>
+                <h3>Module 1</h3>
+                <p>Coming soon</p>
+            </div>
+            <div class="feature-card" style="opacity: 0.5;">
+                <div class="feature-icon">📦</div>
+                <h3>Module 2</h3>
+                <p>Coming soon</p>
+            </div>
+            <div class="feature-card" style="opacity: 0.5;">
+                <div class="feature-icon">📦</div>
+                <h3>Module 3</h3>
+                <p>Coming soon</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="pricing">
+        <h2 class="section-title">Choose Your Plan</h2>
+        <p class="section-subtitle">Flexible pricing for every user</p>
+        <div class="pricing-grid">
+            <div class="pricing-card">
+                <div class="plan-name">Weekly</div>
+                <div class="plan-duration">7 days access</div>
+                <div class="price">£6.99 <small>GBP</small></div>
+                <ul class="pricing-features">
+                    <li><span class="check">✦</span> Full access to Nyxis</li>
+                    <li><span class="check">✦</span> Undetectable bypass</li>
+                    <li><span class="check">✦</span> Zero delay performance</li>
+                    <li><span class="check">✦</span> 24/7 support</li>
+                </ul>
+                <a href="buy.html?plan=weekly" class="btn-outline">Get Weekly →</a>
+            </div>
+
+            <div class="pricing-card featured">
+                <div class="plan-name">Monthly</div>
+                <div class="plan-duration">30 days access</div>
+                <div class="price">£15.99 <small>GBP</small></div>
+                <ul class="pricing-features">
+                    <li><span class="check">✦</span> Full access to Nyxis</li>
+                    <li><span class="check">✦</span> Undetectable bypass</li>
+                    <li><span class="check">✦</span> Zero delay performance</li>
+                    <li><span class="check">✦</span> 24/7 priority support</li>
+                    <li><span class="check">✦</span> Early access to updates</li>
+                </ul>
+                <a href="buy.html?plan=monthly" class="btn-glow">Get Monthly →</a>
+            </div>
+
+            <div class="pricing-card">
+                <div class="plan-name">Lifetime</div>
+                <div class="plan-duration">Unlimited access</div>
+                <div class="price">£25.99 <small>GBP</small></div>
+                <ul class="pricing-features">
+                    <li><span class="check">✦</span> Lifetime access to Nyxis</li>
+                    <li><span class="check">✦</span> Undetectable bypass</li>
+                    <li><span class="check">✦</span> Zero delay performance</li>
+                    <li><span class="check">✦</span> 24/7 premium support</li>
+                    <li><span class="check">✦</span> All future updates</li>
+                    <li><span class="check">✦</span> Exclusive modules</li>
+                </ul>
+                <a href="buy.html?plan=lifetime" class="btn-outline">Get Lifetime →</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="reviews">
+        <h2 class="section-title">What Our Users Say</h2>
+        <p class="section-subtitle">Trusted by thousands of users worldwide</p>
+        <div class="reviews-grid">
+            <div class="review-card">
+                <div class="stars">✦✦✦✦✦</div>
+                <div class="review-text">"Nyxis is absolutely insane. Zero delay, completely undetectable. Best ghost client I've ever used."</div>
+                <div class="reviewer">
+                    <div class="avatar">JD</div>
+                    <div>
+                        <div class="name">John D.</div>
+                        <div class="handle">@johndoe</div>
+                    </div>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="stars">✦✦✦✦✦</div>
+                <div class="review-text">"The performance boost is unreal. I went from 60fps to 240fps instantly. Nyxis is a game changer."</div>
+                <div class="reviewer">
+                    <div class="avatar">SM</div>
+                    <div>
+                        <div class="name">Sarah M.</div>
+                        <div class="handle">@sarahm</div>
+                    </div>
+                </div>
+            </div>
+            <div class="review-card">
+                <div class="stars">✦✦✦✦✦</div>
+                <div class="review-text">"I've tried many clients but Nyxis is the only one that truly delivers. Undetectable and lightning fast."</div>
+                <div class="reviewer">
+                    <div class="avatar">AK</div>
+                    <div>
+                        <div class="name">Alex K.</div>
+                        <div class="handle">@alexk</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="faq">
+        <h2 class="section-title">Frequently Asked Questions</h2>
+        <p class="section-subtitle">Everything you need to know about Nyxis</p>
+        <div class="faq-grid">
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFAQ(this)">
+                    What is Nyxis?
+                    <span>+</span>
+                </div>
+                <div class="faq-a">Nyxis is a premium ghost client designed for maximum performance and complete undetectability.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFAQ(this)">
+                    Is Nyxis detectable?
+                    <span>+</span>
+                </div>
+                <div class="faq-a">No. Nyxis uses advanced bypass technology that makes it completely invisible to all detection systems.</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFAQ(this)">
+                    How does the subscription work?
+                    <span>+</span>
+                </div>
+                <div class="faq-a">We offer flexible plans: 1 week (£6.99), 1 month (£15.99), or Lifetime (£25.99).</div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-q" onclick="toggleFAQ(this)">
+                    What payment methods do you accept?
+                    <span>+</span>
+                </div>
+                <div class="faq-a">We accept all major credit/debit cards, PayPal, and cryptocurrency payments.</div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <p>✦ Nyxis — The Undetectable Ghost Client ✦</p>
+        <p style="margin-top: 10px;">© 2025 Nyxis. All rights reserved.</p>
+    </footer>
+</div>
+
+<script>
+    // Particles
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    const particles = [];
+    for (let i = 0; i < 100; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: Math.random() * 2 + 1,
+            speedX: (Math.random() - 0.5) * 0.5,
+            speedY: (Math.random() - 0.5) * 0.5,
+            color: `rgba(100, 200, 255, ${Math.random() * 0.3})`
+        });
+    }
+    function animate() {
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let p of particles) {
+            p.x += p.speedX;
+            p.y += p.speedY;
+            if (p.x < 0) p.x = canvas.width;
+            if (p.x > canvas.width) p.x = 0;
+            if (p.y < 0) p.y = canvas.height;
+            if (p.y > canvas.height) p.y = 0;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.color;
+            ctx.fill();
+        }
+    }
+    animate();
+
+    const userCount = document.getElementById('userCount');
+    const finalCount = 2847;
+    let currentCount = 0;
+    const increment = finalCount / 60;
+    const userTimer = setInterval(() => {
+        currentCount += increment;
+        if (currentCount >= finalCount) {
+            userCount.innerText = finalCount.toLocaleString();
+            clearInterval(userTimer);
+        } else {
+            userCount.innerText = Math.floor(currentCount).toLocaleString();
+        }
+    }, 30);
+
+    function toggleFAQ(element) {
+        const answer = element.nextElementSibling;
+        const sign = element.querySelector('span');
+        if (answer.classList.contains('open')) {
+            answer.classList.remove('open');
+            sign.innerText = '+';
+        } else {
+            answer.classList.add('open');
+            sign.innerText = '−';
+        }
+    }
+
+    const fadeElements = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    fadeElements.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
