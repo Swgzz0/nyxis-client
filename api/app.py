@@ -1,78 +1,84 @@
-from flask import Flask, send_from_directory, jsonify
-import importlib
+from flask import Flask, send_file, jsonify, send_from_directory
 import os
+import sys
 
 app = Flask(__name__)
 
-# ========== SERVE HTML PAGES - CASE INSENSITIVE ==========
-def find_file(filename):
-    """Find a file even if the case is wrong"""
-    # Try exact match first
-    if os.path.exists(filename):
-        return filename
-    
-    # Try in current directory
-    if os.path.exists(os.path.join(os.getcwd(), filename)):
-        return os.path.join(os.getcwd(), filename)
-    
-    # Try uppercase version
-    if os.path.exists(filename.upper()):
-        return filename.upper()
-    
-    # Try lowercase version
-    if os.path.exists(filename.lower()):
-        return filename.lower()
-    
-    # Try in /vercel/path0
-    vercel_path = '/vercel/path0'
-    if os.path.exists(os.path.join(vercel_path, filename)):
-        return os.path.join(vercel_path, filename)
-    
-    # Check all files in current directory
-    try:
-        for file in os.listdir(os.getcwd()):
-            if file.lower() == filename.lower():
-                return os.path.join(os.getcwd(), file)
-    except:
-        pass
-    
-    return None
-
+# ========== SIMPLE FILE SERVING ==========
 @app.route('/')
 def serve_index():
     """Serve the main index.html file"""
-    html_file = find_file('index.html')
-    if html_file:
-        return send_file(html_file)
-    return jsonify({'error': 'index.html not found'}), 404
+    try:
+        # Try different possible locations
+        locations = [
+            'index.html',
+            'INDEX.HTML',
+            os.path.join(os.getcwd(), 'index.html'),
+            os.path.join(os.getcwd(), 'INDEX.HTML'),
+            '/vercel/path0/index.html',
+            '/var/task/index.html',
+        ]
+        
+        for loc in locations:
+            if os.path.exists(loc):
+                print(f"✅ Found file at: {loc}")
+                return send_file(loc)
+        
+        # If no file found, list what's there
+        files = os.listdir(os.getcwd())
+        return jsonify({
+            'error': 'No index.html found',
+            'files': files,
+            'cwd': os.getcwd()
+        }), 404
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/<path:path>')
 def serve_static(path):
     """Serve any other static files"""
-    file_path = find_file(path)
-    if file_path:
-        return send_file(file_path)
-    return jsonify({'error': f'File not found: {path}'}), 404
+    try:
+        # Try different locations
+        locations = [
+            path,
+            path.upper(),
+            path.lower(),
+            os.path.join(os.getcwd(), path),
+            '/vercel/path0/' + path,
+            '/var/task/' + path,
+        ]
+        
+        for loc in locations:
+            if os.path.exists(loc):
+                return send_file(loc)
+        
+        return jsonify({'error': f'File not found: {path}'}), 404
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-# ========== API HEALTH CHECK ==========
+# ========== API ROUTES ==========
 @app.route('/api/health', methods=['GET'])
 def health_check():
     return jsonify({'status': 'online', 'message': 'Nyxis API is running!'})
 
-# ========== REGISTER ALL API ROUTES ==========
-route_files = [
-    'activate', 'admin', 'buy', 'generate_key',
-    'keys', 'login', 'logs', 'register', 'stats'
-]
+@app.route('/api/test', methods=['GET'])
+def test():
+    return jsonify({'message': 'API is working!'})
 
-for file in route_files:
-    try:
-        module = importlib.import_module(f'api.{file}')
+# ========== REGISTER YOUR OTHER API ROUTES ==========
+try:
+    from api import login, register, admin, buy, activate, keys, stats, logs, generate_key
+    
+    # Register each route file if it has the function
+    route_modules = [login, register, admin, buy, activate, keys, stats, logs, generate_key]
+    for module in route_modules:
         if hasattr(module, 'register_routes'):
             module.register_routes(app)
-            print(f"✅ Loaded: {file}")
-    except Exception as e:
-        print(f"❌ Failed to load {file}: {e}")
+            print(f"✅ Loaded: {module.__name__}")
+except Exception as e:
+    print(f"⚠️ Error loading API routes: {e}")
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=5000)
