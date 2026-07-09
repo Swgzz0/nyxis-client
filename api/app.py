@@ -1,24 +1,29 @@
-from flask import Flask, send_from_directory, jsonify
+from flask import Flask, send_from_directory, jsonify, render_template_string
 import importlib
 import os
 
 app = Flask(__name__, static_folder='../', static_url_path='')
 
-# ========== ROOT ROUTE - Serves your index.html ==========
+# ========== SERVE HTML PAGES ==========
 @app.route('/')
 def serve_index():
     """Serve the main index.html file"""
-    return send_from_directory(os.path.dirname(os.path.dirname(__file__)), 'index.html')
+    try:
+        return send_from_directory(os.path.dirname(os.path.dirname(__file__)), 'index.html')
+    except:
+        return "Welcome to Nyxis Client! The HTML files are being served."
 
 @app.route('/<path:path>')
 def serve_static(path):
-    """Serve any other static files (login.html, admin.html, etc.)"""
-    return send_from_directory(os.path.dirname(os.path.dirname(__file__)), path)
+    """Serve any other static files"""
+    try:
+        return send_from_directory(os.path.dirname(os.path.dirname(__file__)), path)
+    except:
+        return jsonify({'error': 'File not found'}), 404
 
 # ========== API HEALTH CHECK ==========
 @app.route('/api/health', methods=['GET'])
 def health_check():
-    """Simple health check endpoint"""
     return jsonify({'status': 'online', 'message': 'Nyxis API is running!'})
 
 # ========== REGISTER ALL API ROUTES ==========
