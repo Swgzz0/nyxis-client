@@ -57,6 +57,7 @@
         .auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         .error-msg { color: #FF4444; text-align: center; margin-top: 15px; display: none; font-size: 14px; }
         .success-msg { color: #64C8FF; text-align: center; margin-top: 15px; display: none; font-size: 14px; }
+        .debug-msg { color: #888; text-align: center; margin-top: 10px; font-size: 12px; display: none; }
         .links { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
         .links a { color: #64C8FF; text-decoration: none; }
         .links a:hover { text-decoration: underline; }
@@ -84,6 +85,7 @@
 
         <div id="errorMsg" class="error-msg"></div>
         <div id="successMsg" class="success-msg"></div>
+        <div id="debugMsg" class="debug-msg"></div>
 
         <div class="links">
             Don't have an account? <a href="register.html">Register</a>
@@ -92,45 +94,63 @@
     </div>
 
     <script>
-        const BACKEND = https://nyxis-backend.onrender.com;
+        // ===== BACKEND URL - CHANGE THIS =====
+        const BACKEND = 'https://nyxis-backend.onrender.com/api';
+        // ====================================
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMsg');
+            const successDiv = document.getElementById('successMsg');
+            const debugDiv = document.getElementById('debugMsg');
+            
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+            debugDiv.style.display = 'block';
+            debugDiv.innerText = 'Connecting to server...';
 
             const btn = document.querySelector('.auth-btn');
             btn.innerText = 'Logging in...';
             btn.disabled = true;
 
             try {
-                const res = await fetch(`${BACKEND}/login`, {
+                const url = `${BACKEND}/login`;
+                debugDiv.innerText = `Sending to: ${url}`;
+                
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
+                
+                debugDiv.innerText = `Response status: ${res.status}`;
+                
                 const data = await res.json();
+                debugDiv.innerText = `Response data: ${JSON.stringify(data)}`;
 
                 if (data.success) {
-                    document.getElementById('successMsg').style.display = 'block';
-                    document.getElementById('successMsg').innerText = 'Login successful! Redirecting...';
+                    successDiv.style.display = 'block';
+                    successDiv.innerText = 'Login successful! Redirecting...';
                     localStorage.setItem('nyxis_user', JSON.stringify(data.user));
                     
-                    // REDIRECT
                     setTimeout(() => {
                         if (data.user.is_admin) {
                             window.location.href = 'admin.html';
                         } else {
                             window.location.href = 'dashboard.html';
                         }
-                    }, 500);
+                    }, 1000);
                 } else {
-                    document.getElementById('errorMsg').style.display = 'block';
-                    document.getElementById('errorMsg').innerText = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerText = data.error || 'Login failed';
                 }
             } catch (err) {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('errorMsg').innerText = 'Cannot connect to server';
+                errorDiv.style.display = 'block';
+                errorDiv.innerText = `Error: ${err.message}`;
+                debugDiv.innerText = `Error details: ${err.stack || err}`;
             }
 
             btn.innerText = 'Login →';
